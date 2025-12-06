@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Tài liệu CNTT</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>📚 Tài liệu CNTT</h1>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm tài liệu..." />
+                    <button id="searchBtn">🔍</button>
+                </div>
+                <nav class="nav">
+                    <div id="authButtons" class="auth-buttons">
+                        <button onclick="showLogin()">Đăng nhập</button>
+                        <button onclick="showRegister()">Đăng ký</button>
+                    </div>
+                    <div id="userMenu" class="user-menu" style="display: none;">
+                        <span id="userName"></span>
+                        <div class="dropdown">
+                            <button class="dropbtn">⚙️</button>
+                            <div class="dropdown-content">
+                                <a href="profile.html">Hồ sơ</a>
+                                <a href="my-documents.html">Tài liệu của tôi</a>
+                                <a href="upload.html">Tải lên</a>
+                                <a href="#" id="adminLink" style="display: none;">Quản trị</a>
+                                <a href="#" onclick="logout()">Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="content-wrapper">
+                <!-- Sidebar Filters -->
+                <aside class="sidebar">
+                    <h3>Bộ lọc</h3>
+                    
+                    <div class="filter-section">
+                        <h4>Chuyên ngành</h4>
+                        <div id="categoryFilters"></div>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <h4>Loại tài liệu</h4>
+                        <div id="typeFilters"></div>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <h4>Định dạng</h4>
+                        <label><input type="checkbox" name="format" value="pdf"> PDF</label>
+                        <label><input type="checkbox" name="format" value="docx"> DOCX</label>
+                        <label><input type="checkbox" name="format" value="zip"> ZIP</label>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <h4>Thời gian</h4>
+                        <select id="timeRange">
+                            <option value="">Tất cả</option>
+                            <option value="week">Tuần này</option>
+                            <option value="month">Tháng này</option>
+                            <option value="year">Năm nay</option>
+                        </select>
+                    </div>
+                    
+                    <button id="resetFilters" class="btn-secondary">Reset Filters</button>
+                </aside>
+
+                <!-- Documents List -->
+                <section class="documents-section">
+                    <div class="section-header">
+                        <h2>Tài liệu mới nhất</h2>
+                        <div id="resultCount"></div>
+                    </div>
+                    
+                    <div id="documentsList" class="documents-grid"></div>
+                    
+                    <div id="pagination" class="pagination"></div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('loginModal')">&times;</span>
+            <h2>Đăng nhập</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu:</label>
+                    <input type="password" name="password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Đăng nhập</button>
+                    <a href="#" onclick="showForgotPassword()">Quên mật khẩu?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('registerModal')">&times;</span>
+            <h2>Đăng ký</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu:</label>
+                    <input type="password" name="password" required>
+                    <small>Tối thiểu 8 ký tự, có chữ hoa và số</small>
+                </div>
+                <div class="form-group">
+                    <label>Họ tên:</label>
+                    <input type="text" name="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Mã số (SV/GV):</label>
+                    <input type="text" name="student_code">
+                </div>
+                <div class="form-group">
+                    <label>Vai trò:</label>
+                    <select name="role">
+                        <option value="student">Sinh viên</option>
+                        <option value="teacher">Giảng viên</option>
+                        <option value="staff">Cán bộ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Khoa/Lớp:</label>
+                    <input type="text" name="department">
+                </div>
+                <button type="submit" class="btn-primary">Đăng ký</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

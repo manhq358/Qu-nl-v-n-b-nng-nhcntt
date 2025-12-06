@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .avatar-upload {
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>📚 Tài liệu CNTT</h1>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm tài liệu..." />
+                    <button id="searchBtn">🔍</button>
+                </div>
+                <nav class="nav">
+                    <div id="authButtons" class="auth-buttons">
+                        <button onclick="showLogin()">Đăng nhập</button>
+                        <button onclick="showRegister()">Đăng ký</button>
+                    </div>
+                    <div id="userMenu" class="user-menu" style="display: none;">
+                        <span id="userName"></span>
+                        <div class="dropdown">
+                            <button class="dropbtn">⚙️</button>
+                            <div class="dropdown-content">
+                                <a href="profile.html">Hồ sơ</a>
+                                <a href="my-documents.html">Tài liệu của tôi</a>
+                                <a href="upload.html">Tải lên</a>
+                                <a href="#" id="adminLink" style="display: none;">Quản trị</a>
+                                <a href="index.html" onclick="logout()">Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h2>👤 Hồ sơ cá nhân</h2>
+            </div>
+            
+            <div class="avatar-section">
+                <img id="avatarPreview" src="https://via.placeholder.com/150" alt="Avatar" class="avatar-preview">
+                <br>
+                <input type="file" id="avatarUpload" class="avatar-upload" accept="image/jpeg,image/png,image/jpg">
+                <button class="btn-secondary" onclick="document.getElementById('avatarUpload').click()">
+                    📷 Thay đổi ảnh đại diện
+                </button>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('info')">Thông tin cá nhân</button>
+                <button class="tab" onclick="switchTab('password')">Đổi mật khẩu</button>
+            </div>
+            
+            <!-- Tab Thông tin -->
+            <div id="infoTab" class="tab-content active">
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="email" disabled>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Họ tên: *</label>
+                        <input type="text" id="full_name" name="full_name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mã số (SV/GV):</label>
+                        <input type="text" id="student_code" name="student_code">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Vai trò:</label>
+                        <input type="text" id="role" disabled>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Khoa/Lớp:</label>
+                        <input type="text" id="department" name="department">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Ngày tạo tài khoản:</label>
+                        <input type="text" id="created_at" disabled>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">💾 Cập nhật thông tin</button>
+                </form>
+            </div>
+            
+            <!-- Tab Đổi mật khẩu -->
+            <div id="passwordTab" class="tab-content">
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label>Mật khẩu cũ: *</label>
+                        <input type="password" name="old_password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mật khẩu mới: *</label>
+                        <input type="password" name="new_password" required>
+                        <small>Tối thiểu 8 ký tự, có chữ hoa và số</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu mới: *</label>
+                        <input type="password" name="confirm_password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">🔒 Đổi mật khẩu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+ 
+    <script>
+        const API_URL = 'api';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!requireAuth()) return;
+            
+            checkAuth();
+            loadProfile();
+            
+            // Avatar upload handler
+            document.getElementById('avatarUpload').addEventListener('change', uploadAvatar);
+        });
+        
+        async function loadProfile() {
+            try {
+                const response = await fetch(`${API_URL}/user.php?action=profile`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const user = result.data;
+                    
+                    document.getElementById('email').value = user.email;
+                    document.getElementById('full_name').value = user.full_name;
+                    document.getElementById('student_code').value = user.student_code || '';
+                    document.getElementById('role').value = getRoleName(user.role);
+                    document.getElementById('department').value = user.department || '';
+                    document.getElementById('created_at').value = formatDate(user.created_at);
+                    
+                    if (user.avatar_url) {
+                        document.getElementById('avatarPreview').src = user.avatar_url;
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Không thể tải thông tin hồ sơ', 'error');
+            }
+        }
+        
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch(`${API_URL}/user.php?action=update-profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Cập nhật thông tin thành công!', 'success');
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Cập nhật thất bại!', 'error');
+            }
+        });
+        
+        document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const newPassword = formData.get('new_password');
+            const confirmPassword = formData.get('confirm_password');
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('Mật khẩu xác nhận không khớp!', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+                showAlert('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa và số', 'error');
+                return;
+            }
+            
+            const data = {
+                old_password: formData.get('old_password'),
+                new_password: newPassword
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/auth.php?action=change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Đổi mật khẩu thành công!', 'success');
+                    e.target.reset();
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Đổi mật khẩu thất bại!', 'error');
+            }
+        });
+        
+        async function uploadAvatar(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            
+            if (file.size > maxSize) {
+                showAlert('Ảnh vượt quá 2MB!', 'error');
+                return;
+            }
+            
+            if (!allowedTypes.includes(file.type)) {
+                showAlert('Chỉ chấp nhận file JPG, JPEG, PNG!', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('avatar', file);
+            
+            try {
+                const response = await fetch(`${API_URL}/user.php?action=upload-avatar`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('avatarPreview').src = result.avatar_url;
+                    showAlert('Upload avatar thành công!', 'success');
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Upload thất bại!', 'error');
+            }
+        }
+        
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            if (tabName === 'info') {
+                document.getElementById('infoTab').classList.add('active');
+                document.querySelectorAll('.tab')[0].classList.add('active');
+            } else {
+                document.getElementById('passwordTab').classList.add('active');
+                document.querySelectorAll('.tab')[1].classList.add('active');
+            }
+        }
+        
+        function getRoleName(role) {
+            const roles = {
+                'student': 'Sinh viên',
+                'teacher': 'Giảng viên',
+                'staff': 'Cán bộ',
+                'admin': 'Quản trị viên'
+            };
+            return roles[role] || role;
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN');
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.profile-container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+    </script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

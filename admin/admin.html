@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 24px;
+            max-width: 1600px;
+            margin: 24px auto;
+            padding: 0 24px;
+        }
+        
+        .admin-sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .admin-sidebar h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        
+        .admin-menu {
+            list-style: none;
+        }
+        
+        .admin-menu li {
+            margin-bottom: 8px;
+        }
+        
+        .admin-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #4b5563;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .admin-menu a:hover, .admin-menu a.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .admin-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 24px;
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .stat-card h4 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .stat-card.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .stat-card.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .stat-card.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .chart-container {
+            background: #f9fafb;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 24px;
+        }
+        
+        .data-table th {
+            background: #f3f4f6;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .data-table tr:hover {
+            background: #f9fafb;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 0 4px;
+        }
+        
+        .action-btn.view {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .action-btn.edit {
+            background: #10b981;
+            color: white;
+        }
+        
+        .action-btn.delete {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-badge.active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-badge.blocked {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header tự động load từ header-component.js -->
+    
+    <div class="admin-layout">
+        <!-- Sidebar Menu -->
+        <aside class="admin-sidebar">
+            <h3>⚡ Admin Panel</h3>
+            <ul class="admin-menu">
+                <li><a href="#" onclick="showTab('dashboard')" class="active" id="menu-dashboard">
+                    📊 Dashboard
+                </a></li>
+                <li><a href="#" onclick="showTab('users')" id="menu-users">
+                    👥 Quản lý Users
+                </a></li>
+                <li><a href="#" onclick="showTab('documents')" id="menu-documents">
+                    📁 Quản lý Tài liệu
+                </a></li>
+                <li><a href="#" onclick="showTab('categories')" id="menu-categories">
+                    🏷️ Quản lý Danh mục
+                </a></li>
+                <li><a href="#" onclick="showTab('logs')" id="menu-logs">
+                    📝 Lịch sử hoạt động
+                </a></li>
+                <li>
+                    <a href="../index.html" style="color: #667eea;">
+                        🏠 Quay về trang chủ
+                    </a>
+                </li>
+            </ul>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="admin-content">
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content">
+                <h2>📊 Dashboard & Thống kê</h2>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Tổng số tài liệu</h4>
+                        <div class="stat-value" id="stat-total-docs">0</div>
+                    </div>
+                    <div class="stat-card success">
+                        <h4>Tổng số người dùng</h4>
+                        <div class="stat-value" id="stat-total-users">0</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <h4>Tổng lượt tải</h4>
+                        <div class="stat-value" id="stat-total-downloads">0</div>
+                    </div>
+                    <div class="stat-card info">
+                        <h4>Tài liệu tháng này</h4>
+                        <div class="stat-value" id="stat-month-docs">0</div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Tài liệu mới theo tháng (12 tháng gần nhất)</h3>
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Tài liệu theo chuyên ngành</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Top Documents -->
+                <div class="chart-container">
+                    <h3>🏆 Top 10 tài liệu có lượt tải cao nhất</h3>
+                    <table class="data-table" id="topDocsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tiêu đề</th>
+                                <th>Lượt xem</th>
+                                <th>Lượt tải</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topDocsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Users Tab -->
+            <div id="tab-users" class="tab-content" style="display: none;">
+                <h2>👥 Quản lý Người dùng</h2>
+                
+                <div style="margin: 20px 0; display: flex; gap: 12px;">
+                    <select id="filterRole" style="padding: 10px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                        <option value="">Tất cả vai trò</option>
+                        <option value="student">Sinh viên</option>
+                        <option value="teacher">Giảng viên</option>
+                        <option value="staff">Cán bộ</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    
+                    <select id="filterStatus" style="padding: 10px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active">Active</option>
+                        <option value="blocked">Blocked</option>
+                    </select>
+                    
+                    <button onclick="loadUsers()" class="btn-primary">🔄 Làm mới</button>
+                </div>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Họ tên</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày đăng ký</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+                
+                <div id="usersPagination" class="pagination"></div>
+            </div>
+            
+            <!-- Documents Tab -->
+            <div id="tab-documents" class="tab-content" style="display: none;">
+                <h2>📁 Quản lý Tài liệu</h2>
+                
+                <div style="margin: 20px 0; display: flex; gap: 12px;">
+                    <select id="filterDocCategory" style="padding: 10px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                        <option value="">Tất cả chuyên ngành</option>
+                    </select>
+                    
+                    <button onclick="loadAllDocuments()" class="btn-primary">🔄 Làm mới</button>
+                </div>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tiêu đề</th>
+                            <th>Tác giả</th>
+                            <th>Chuyên ngành</th>
+                            <th>Ngày đăng</th>
+                            <th>Lượt tải</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="docsTableBody"></tbody>
+                </table>
+                
+                <div id="docsPagination" class="pagination"></div>
+            </div>
+            
+            <!-- Categories Tab -->
+            <div id="tab-categories" class="tab-content" style="display: none;">
+                <h2>🏷️ Quản lý Danh mục</h2>
+                
+                <button onclick="showAddCategoryModal()" class="btn-primary" style="margin-bottom: 20px;">
+                    ➕ Thêm chuyên ngành mới
+                </button>
+                
+                <h3 style="margin-top: 30px;">Chuyên ngành</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên</th>
+                            <th>Mô tả</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoriesTableBody"></tbody>
+                </table>
+                
+                <button onclick="showAddTypeModal()" class="btn-primary" style="margin: 30px 0 20px;">
+                    ➕ Thêm loại tài liệu mới
+                </button>
+                
+                <h3>Loại tài liệu</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên</th>
+                            <th>Mô tả</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="typesTableBody"></tbody>
+                </table>
+            </div>
+            
+            <!-- Logs Tab -->
+            <div id="tab-logs" class="tab-content" style="display: none;">
+                <h2>📝 Lịch sử hoạt động</h2>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>Admin</th>
+                            <th>Hành động</th>
+                            <th>Đối tượng</th>
+                            <th>Lý do</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modals -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCategoryModal()">&times;</span>
+            <h2 id="categoryModalTitle">Thêm chuyên ngành mới</h2>
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId">
+                <div class="form-group">
+                    <label>Tên chuyên ngành:</label>
+                    <input type="text" id="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label>Mô tả:</label>
+                    <textarea id="categoryDesc" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">💾 Lưu</button>
+            </form>
+        </div>
+    </div>
+    <!-- Preview Container -->
+<div id="previewContainer" style="display: none;"></div>
+
+<!-- Modal for categories -->
+<div id="categoryModal" class="modal">
+    <!-- existing modal code -->
+</div>
+    
+   <script src="../js/config.js"></script> 
+<script src="../js/auth.js"></script> 
+    <script src="../admin/admin.js"></script>
+    <script src="../js/preview.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

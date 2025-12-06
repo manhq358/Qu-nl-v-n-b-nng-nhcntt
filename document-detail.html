@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết tài liệu</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .detail-container {
+            max-width: 900px;
+            margin: 30px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .detail-header {
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .detail-header h1 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .detail-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .meta-label {
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .description-section {
+            margin-bottom: 30px;
+        }
+        
+        .description-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+   <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>📚 Tài liệu CNTT</h1>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm tài liệu..." />
+                    <button id="searchBtn">🔍</button>
+                </div>
+                <nav class="nav">
+                    
+                    <div id="userMenu" class="user-menu" style="display: none;">
+                        <span id="userName"></span>
+                        <div class="dropdown">
+                            <button class="dropbtn">⚙️</button>
+                            <div class="dropdown-content">
+                                <a href="profile.html">Hồ sơ</a>
+                                <a href="my-documents.html">Tài liệu của tôi</a>
+                                <a href="upload.html">Tải lên</a>
+                                <a href="#" id="adminLink" style="display: none;">Quản trị</a>
+                                <a href="index.html" onclick="logout()">Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <a href="index.html" class="back-link">← Quay lại danh sách</a>
+        
+        <div class="detail-container" id="documentDetail">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Đang tải...</p>
+            </div>
+        </div>
+        
+        <!-- Preview Container -->
+        <div id="previewContainer" style="display: none;"></div>
+    </div>
+
+    <!-- Load JavaScript -->
+    
+    <script>
+        const API_URL = 'api';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadDocumentDetail();
+        });
+        
+        async function loadDocumentDetail() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const docId = urlParams.get('id');
+            
+            if (!docId) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/documents.php?action=detail&id=${docId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayDocumentDetail(result.data);
+                } else {
+                    showError('Không tìm thấy tài liệu');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Không thể tải thông tin tài liệu');
+            }
+        }
+        
+        function displayDocumentDetail(doc) {
+            const container = document.getElementById('documentDetail');
+            
+            container.innerHTML = `
+                <div class="detail-header">
+                    <h1>${doc.title}</h1>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <span class="badge">${doc.category_name}</span>
+                        <span class="badge secondary">${doc.doc_type_name}</span>
+                        <span class="badge" style="background: #28a745;">${doc.file_format.toUpperCase()}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">👤 Tác giả:</span>
+                        <span>${doc.author_name}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">📅 Ngày đăng:</span>
+                        <span>${formatDate(doc.created_at)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">💾 Kích thước:</span>
+                        <span>${formatFileSize(doc.file_size)}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">👁️ Lượt xem:</span>
+                        <span>${doc.view_count}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">⬇️ Lượt tải:</span>
+                        <span>${doc.download_count}</span>
+                    </div>
+                </div>
+                
+                <div class="description-section">
+                    <h3>Mô tả</h3>
+                    <p>${doc.description}</p>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="downloadDocument(${doc.id})">
+                        ⬇️ Tải xuống
+                    </button>
+                    <button class="btn-secondary" onclick="previewDocument('${doc.file_path}', '${doc.file_format}', '${doc.file_name}')">
+                        👁️ Xem trước
+                    </button>
+                </div>
+            `;
+        }
+        
+        async function downloadDocument(docId) {
+            try {
+                const response = await fetch(`${API_URL}/documents.php?action=download&id=${docId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const link = document.createElement('a');
+                    link.href = result.file_path;
+                    link.download = result.file_name;
+                    link.click();
+                    showAlert('Đang tải xuống...', 'success');
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Download error:', error);
+                showAlert('Không thể tải xuống file', 'error');
+            }
+        }
+        
+        // Gọi hàm preview từ preview.js
+        function previewDocument(filePath, fileFormat, fileName) {
+            console.log('Preview clicked:', filePath, fileFormat, fileName);
+            previewDocumentAdvanced('uploads/' + filePath, fileFormat, fileName);
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN');
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
+            else return (bytes / 1048576).toFixed(2) + ' MB';
+        }
+        
+        function showError(message) {
+            document.getElementById('documentDetail').innerHTML = `
+                <div class="alert alert-error">${message}</div>
+            `;
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Modal functions
+        function showLogin() {
+            // Implement login modal
+        }
+        
+        function showRegister() {
+            // Implement register modal
+        }
+        
+        function logout() {
+            if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+    <script src="js/auth.js"></script>
+    <script src="js/preview.js"></script>
+</body>
+</html>

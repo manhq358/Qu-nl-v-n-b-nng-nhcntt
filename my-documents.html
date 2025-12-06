@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài liệu của tôi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .my-docs-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .docs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .docs-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .docs-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .docs-table tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-icon {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-edit {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #218838;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        
+        .btn-view {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>📚 Tài liệu CNTT</h1>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm tài liệu..." />
+                    <button id="searchBtn">🔍</button>
+                </div>
+                <nav class="nav">
+                    <div id="authButtons" class="auth-buttons">
+                        <button onclick="showLogin()">Đăng nhập</button>
+                        <button onclick="showRegister()">Đăng ký</button>
+                    </div>
+                    <div id="userMenu" class="user-menu" style="display: none;">
+                        <span id="userName"></span>
+                        <div class="dropdown">
+                            <button class="dropbtn">⚙️</button>
+                            <div class="dropdown-content">
+                                <a href="profile.html">Hồ sơ</a>
+                                <a href="my-documents.html">Tài liệu của tôi</a>
+                                <a href="upload.html">Tải lên</a>
+                                <a href="#" id="adminLink" style="display: none;">Quản trị</a>
+                                <a href="index.html" onclick="logout()">Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="my-docs-container">
+            <div class="page-header">
+                <h2>📂 Tài liệu của tôi</h2>
+                <button class="btn-primary" onclick="window.location.href='upload.html'">
+                    ➕ Tải lên mới
+                </button>
+            </div>
+            
+            <div id="documentsTable">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Đang tải...</p>
+                </div>
+            </div>
+            
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Chỉnh sửa tài liệu</h2>
+            <form id="editForm">
+                <input type="hidden" id="editDocId">
+                
+                <div class="form-group">
+                    <label>Tiêu đề: *</label>
+                    <input type="text" id="editTitle" maxlength="200" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Mô tả: *</label>
+                    <textarea id="editDescription" rows="5" maxlength="1000" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Chuyên ngành: *</label>
+                    <select id="editCategory" required></select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Loại tài liệu: *</label>
+                    <select id="editType" required></select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Thay đổi file (tùy chọn):</label>
+                    <input type="file" id="editFile" accept=".pdf,.docx,.zip">
+                    <small>Để trống nếu không muốn thay đổi file</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">💾 Lưu thay đổi</button>
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+   
+    <script>
+        const API_URL = 'api';
+        let currentPage = 1;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!requireAuth()) return;
+            
+            checkAuth();
+            loadMyDocuments();
+        });
+        
+        async function loadMyDocuments() {
+            try {
+                const response = await fetch(`${API_URL}/documents.php?action=my-documents&page=${currentPage}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayDocuments(result.data);
+                    displayPagination(result.pagination);
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Không thể tải danh sách tài liệu');
+            }
+        }
+        
+        function displayDocuments(documents) {
+            const container = document.getElementById('documentsTable');
+            
+            if (documents.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 40px;">Bạn chưa có tài liệu nào. <a href="upload.html">Tải lên tài liệu đầu tiên</a></p>';
+                return;
+            }
+            
+            const html = `
+                <table class="docs-table">
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề</th>
+                            <th>Chuyên ngành</th>
+                            <th>Loại</th>
+                            <th>Ngày đăng</th>
+                            <th>Lượt xem</th>
+                            <th>Lượt tải</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${documents.map(doc => `
+                            <tr>
+                                <td><strong>${doc.title}</strong></td>
+                                <td>${doc.category_name}</td>
+                                <td>${doc.doc_type_name}</td>
+                                <td>${formatDate(doc.created_at)}</td>
+                                <td>👁️ ${doc.view_count}</td>
+                                <td>⬇️ ${doc.download_count}</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-icon btn-view" onclick="viewDocument(${doc.id})" title="Xem">👁️</button>
+                                        <button class="btn-icon btn-edit" onclick="editDocument(${doc.id})" title="Sửa">✏️</button>
+                                        <button class="btn-icon btn-delete" onclick="deleteDocument(${doc.id})" title="Xóa">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        function displayPagination(pagination) {
+            const container = document.getElementById('pagination');
+            const { page, pages } = pagination;
+            
+            if (pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = `<button onclick="changePage(${page - 1})" ${page === 1 ? 'disabled' : ''}>« Trước</button>`;
+            
+            for (let i = 1; i <= pages; i++) {
+                html += `<button onclick="changePage(${i})" class="${i === page ? 'active' : ''}">${i}</button>`;
+            }
+            
+            html += `<button onclick="changePage(${page + 1})" ${page === pages ? 'disabled' : ''}>Sau »</button>`;
+            
+            container.innerHTML = html;
+        }
+        
+        function changePage(page) {
+            currentPage = page;
+            loadMyDocuments();
+        }
+        
+        function viewDocument(id) {
+            window.location.href = `document-detail.html?id=${id}`;
+        }
+        
+        async function editDocument(id) {
+            try {
+                // Load document details
+                const response = await fetch(`${API_URL}/documents.php?action=detail&id=${id}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const doc = result.data;
+                    
+                    // Load categories and types
+                    await loadCategoriesForEdit();
+                    await loadTypesForEdit();
+                    
+                    // Fill form
+                    document.getElementById('editDocId').value = doc.id;
+                    document.getElementById('editTitle').value = doc.title;
+                    document.getElementById('editDescription').value = doc.description;
+                    document.getElementById('editCategory').value = doc.category_id;
+                    document.getElementById('editType').value = doc.document_type_id;
+                    
+                    // Show modal
+                    document.getElementById('editModal').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Không thể tải thông tin tài liệu');
+            }
+        }
+        
+        async function loadCategoriesForEdit() {
+            const response = await fetch(`${API_URL}/categories.php?action=list-categories`);
+            const result = await response.json();
+            
+            if (result.success) {
+                const select = document.getElementById('editCategory');
+                select.innerHTML = result.data.map(cat => 
+                    `<option value="${cat.id}">${cat.name}</option>`
+                ).join('');
+            }
+        }
+        
+        async function loadTypesForEdit() {
+            const response = await fetch(`${API_URL}/categories.php?action=list-types`);
+            const result = await response.json();
+            
+            if (result.success) {
+                const select = document.getElementById('editType');
+                select.innerHTML = result.data.map(type => 
+                    `<option value="${type.id}">${type.name}</option>`
+                ).join('');
+            }
+        }
+        
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('id', document.getElementById('editDocId').value);
+            formData.append('title', document.getElementById('editTitle').value);
+            formData.append('description', document.getElementById('editDescription').value);
+            formData.append('category_id', document.getElementById('editCategory').value);
+            formData.append('document_type_id', document.getElementById('editType').value);
+            
+            const fileInput = document.getElementById('editFile');
+            if (fileInput.files.length > 0) {
+                formData.append('file', fileInput.files[0]);
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/documents.php?action=update`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Cập nhật thành công!');
+                    closeEditModal();
+                    loadMyDocuments();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Cập nhật thất bại!');
+            }
+        });
+        
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('editForm').reset();
+        }
+        
+        async function deleteDocument(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa tài liệu này?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/documents.php?action=delete&id=${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Xóa thành công!');
+                    loadMyDocuments();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Xóa thất bại!');
+            }
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN');
+        }
+        
+        function showError(message) {
+            document.getElementById('documentsTable').innerHTML = `
+                <div class="alert alert-error">${message}</div>
+            `;
+        }
+    </script>
+
+     <script src="js/auth.js"></script>
+     <script src="js/app.js"></script>
+</body>
+</html>

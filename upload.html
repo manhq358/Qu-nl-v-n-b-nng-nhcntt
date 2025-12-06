@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tải lên tài liệu</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .upload-container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-upload-area:hover {
+            background: #f0f4ff;
+        }
+        
+        .file-upload-area.dragover {
+            background: #e0e7ff;
+            border-color: #764ba2;
+        }
+        
+        .file-preview {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .file-preview.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f3f3f3;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-bar.active {
+            display: block;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>📚 Tài liệu CNTT</h1>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm tài liệu..." />
+                    <button id="searchBtn">🔍</button>
+                </div>
+                <nav class="nav">
+                    <div id="authButtons" class="auth-buttons">
+                        <button onclick="showLogin()">Đăng nhập</button>
+                        <button onclick="showRegister()">Đăng ký</button>
+                    </div>
+                    <div id="userMenu" class="user-menu" style="display: none;">
+                        <span id="userName"></span>
+                        <div class="dropdown">
+                            <button class="dropbtn">⚙️</button>
+                            <div class="dropdown-content">
+                                <a href="profile.html">Hồ sơ</a>
+                                <a href="my-documents.html">Tài liệu của tôi</a>
+                                <a href="upload.html">Tải lên</a>
+                                <a href="#" id="adminLink" style="display: none;">Quản trị</a>
+                                <a href="index.html" onclick="logout()">Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="upload-container">
+            <h2 style="color: #667eea; margin-bottom: 30px;">Tải lên tài liệu mới</h2>
+            
+            <form id="uploadForm">
+                <div class="file-upload-area" id="fileUploadArea">
+                    <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.zip" style="display: none;">
+                    <div>
+                        <h3>📁 Kéo thả file hoặc click để chọn</h3>
+                        <p>Chấp nhận: PDF, DOCX, ZIP (tối đa 50MB)</p>
+                    </div>
+                </div>
+                
+                <div class="file-preview" id="filePreview"></div>
+                
+                <div class="form-group">
+                    <label>Tiêu đề: *</label>
+                    <input type="text" name="title" maxlength="200" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Mô tả/Tóm tắt: *</label>
+                    <textarea name="description" rows="5" maxlength="1000" required></textarea>
+                    <small>Tối đa 1000 ký tự</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Chuyên ngành: *</label>
+                    <select name="category_id" id="categorySelect" required>
+                        <option value="">-- Chọn chuyên ngành --</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Loại tài liệu: *</label>
+                    <select name="document_type_id" id="typeSelect" required>
+                        <option value="">-- Chọn loại tài liệu --</option>
+                    </select>
+                </div>
+                
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">📤 Tải lên</button>
+                    <button type="button" class="btn-secondary" onclick="window.location.href='my-documents.html'">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+   
+    <script>
+        const API_URL = 'api';
+        let selectedFile = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!requireAuth()) return;
+            
+            checkAuth();
+            loadCategories();
+            loadDocumentTypes();
+            setupFileUpload();
+        });
+        
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_URL}/categories.php?action=list-categories`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('categorySelect');
+                    result.data.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+        
+        async function loadDocumentTypes() {
+            try {
+                const response = await fetch(`${API_URL}/categories.php?action=list-types`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('typeSelect');
+                    result.data.forEach(type => {
+                        const option = document.createElement('option');
+                        option.value = type.id;
+                        option.textContent = type.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading types:', error);
+            }
+        }
+        
+        function setupFileUpload() {
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            const fileInput = document.getElementById('fileInput');
+            
+            fileUploadArea.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', function(e) {
+                handleFileSelect(e.target.files[0]);
+            });
+            
+            // Drag and drop
+            fileUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                fileUploadArea.classList.add('dragover');
+            });
+            
+            fileUploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                fileUploadArea.classList.remove('dragover');
+            });
+            
+            fileUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                fileUploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+        }
+        
+        function handleFileSelect(file) {
+            // Validate file
+            const maxSize = 50 * 1024 * 1024; // 50MB
+            const allowedExt = ['pdf', 'docx', 'zip'];
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            
+            if (file.size > maxSize) {
+                alert('File vượt quá 50MB!');
+                return;
+            }
+            
+            if (!allowedExt.includes(fileExt)) {
+                alert('Chỉ chấp nhận file PDF, DOCX, ZIP!');
+                return;
+            }
+            
+            selectedFile = file;
+            
+            // Show preview
+            const preview = document.getElementById('filePreview');
+            preview.innerHTML = `
+                <strong>File đã chọn:</strong> ${file.name}<br>
+                <strong>Kích thước:</strong> ${formatFileSize(file.size)}<br>
+                <strong>Định dạng:</strong> ${fileExt.toUpperCase()}
+            `;
+            preview.classList.add('active');
+        }
+        
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!selectedFile) {
+                alert('Vui lòng chọn file!');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            formData.set('file', selectedFile);
+            
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            progressBar.classList.add('active');
+            
+            try {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', function(e) {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressFill.style.width = percent + '%';
+                        progressFill.textContent = percent + '%';
+                    }
+                });
+                
+                xhr.addEventListener('load', function() {
+                    if (xhr.status === 200) {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result.success) {
+                            alert('Tải lên thành công!');
+                            window.location.href = 'my-documents.html';
+                        } else {
+                            alert(result.message);
+                        }
+                    } else {
+                        alert('Tải lên thất bại!');
+                    }
+                    progressBar.classList.remove('active');
+                });
+                
+                xhr.addEventListener('error', function() {
+                    alert('Lỗi kết nối!');
+                    progressBar.classList.remove('active');
+                });
+                
+                xhr.open('POST', `${API_URL}/documents.php?action=upload`);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + getAuthToken());
+                xhr.send(formData);
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Tải lên thất bại!');
+                progressBar.classList.remove('active');
+            }
+        });
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
+            else return (bytes / 1048576).toFixed(2) + ' MB';
+        }
+    </script>
+       <script src="js/auth.js"></script>
+</body>
+</html>
