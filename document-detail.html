@@ -82,14 +82,19 @@
                 <div class="search-bar">
                     <input type="text" id="searchInput" placeholder="Tìm kiếm tài liệu..." />
                     <button id="searchBtn">🔍</button>
+                    
                 </div>
                 <nav class="nav">
-                    
+                    <div id="authButtons" class="auth-buttons">
+                        <button onclick="showLogin()">Đăng nhập</button>
+                        <button onclick="showRegister()">Đăng ký</button>
+                    </div>
                     <div id="userMenu" class="user-menu" style="display: none;">
                         <span id="userName"></span>
                         <div class="dropdown">
                             <button class="dropbtn">⚙️</button>
                             <div class="dropdown-content">
+                                <a href="index.html" class="back-link">Trang chủ</a>
                                 <a href="profile.html">Hồ sơ</a>
                                 <a href="my-documents.html">Tài liệu của tôi</a>
                                 <a href="upload.html">Tải lên</a>

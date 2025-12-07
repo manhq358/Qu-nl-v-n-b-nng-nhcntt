@@ -28,23 +28,33 @@ async function checkAuth() {
     }
 }
 
-// Show auth buttons
+// 1. Sửa hàm showAuthButtons (Thêm kiểm tra if)
 function showAuthButtons() {
-    document.getElementById('authButtons').style.display = 'flex'; // ✅ Sửa thành flex
-    document.getElementById('userMenu').style.display = 'none';
+    const authBtns = document.getElementById('authButtons');
+    const userMenu = document.getElementById('userMenu');
+
+    // Chỉ đổi style nếu phần tử đó có tồn tại trên trang hiện tại
+    if (authBtns) authBtns.style.display = 'flex';
+    if (userMenu) userMenu.style.display = 'none';
 }
 
-// Show user menu
+// 2. Sửa hàm showUserMenu (Thêm kiểm tra if)
 function showUserMenu(user) {
-    document.getElementById('authButtons').style.display = 'none'; // ✅ Ẩn auth buttons
-    document.getElementById('userMenu').style.display = 'flex';
-    document.getElementById('userName').textContent = user.full_name;
+    const authBtns = document.getElementById('authButtons');
+    const userMenu = document.getElementById('userMenu');
+    const userName = document.getElementById('userName');
+    const adminLink = document.getElementById('adminLink');
+
+    if (authBtns) authBtns.style.display = 'none';
     
-    // Show admin link if user is admin
-    if (user.role === 'admin') {
-        const adminLink = document.getElementById('adminLink');
-        if (adminLink) {
-            adminLink.style.display = 'inline'; // ✅ Sửa thành inline
+    if (userMenu) {
+        userMenu.style.display = 'flex';
+        // Chỉ gán tên nếu tìm thấy chỗ hiển thị tên
+        if (userName) userName.textContent = user.full_name;
+        
+        // Xử lý link admin
+        if (user.role === 'admin' && adminLink) {
+            adminLink.style.display = 'block'; // Hoặc 'inline' tùy CSS của bạn
             adminLink.href = 'admin/admin.html';
         }
     }

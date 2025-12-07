@@ -119,7 +119,7 @@ async function loadDocuments() {
     }
 }
 
-// Display documents
+// Display documents - NÂNG CẤP: Hiển thị author_name và highlight
 function displayDocuments(documents) {
     const container = document.getElementById('documentsList');
     
@@ -131,7 +131,7 @@ function displayDocuments(documents) {
     container.innerHTML = documents.map(doc => `
         <div class="document-card" onclick="viewDocument(${doc.id})">
             <h3>${highlightSearch(doc.title)}</h3>
-            <p class="description">${doc.description}</p>
+            <p class="description">${highlightSearch(doc.description || '')}</p>
             <div class="document-meta">
                 <span class="badge">${doc.category_name}</span>
                 <span class="badge secondary">${doc.doc_type_name}</span>
@@ -142,6 +142,7 @@ function displayDocuments(documents) {
                 <span>⬇️ ${doc.download_count} lượt tải</span>
             </div>
             <div class="document-meta">
+                <span>👤 ${highlightSearch(doc.author_name || 'N/A')}</span>
                 <span>📅 ${formatDate(doc.created_at)}</span>
             </div>
         </div>
@@ -248,10 +249,14 @@ function viewDocument(id) {
     window.location.href = `document-detail.html?id=${id}`;
 }
 
-// Highlight search terms
+// NÂNG CẤP: Highlight search terms - Hỗ trợ escape regex
 function highlightSearch(text) {
+    if (!text) return '';
     if (!filters.search) return text;
-    const regex = new RegExp(`(${filters.search})`, 'gi');
+    
+    // Escape special regex characters
+    const searchTerm = filters.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
     return text.replace(regex, '<mark>$1</mark>');
 }
 

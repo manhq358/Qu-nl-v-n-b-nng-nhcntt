@@ -36,48 +36,59 @@ switch ($action) {
         $format = $_GET['format'] ?? '';
         $timeRange = $_GET['time_range'] ?? '';
         
-        $where = ['is_deleted = 0'];
+        $where = ['d.is_deleted = 0'];
         $params = [];
         
+        // NÂNG CẤP: Tìm kiếm trong title, description VÀ author_name
         if ($search) {
-            $where[] = '(title LIKE ? OR description LIKE ?)';
-            $params[] = "%$search%";
-            $params[] = "%$search%";
+            $where[] = '(d.title LIKE ? OR d.description LIKE ? OR u.full_name LIKE ?)';
+            $searchTerm = "%$search%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
         }
         
         if ($category) {
-            $where[] = 'category_id = ?';
+            $where[] = 'd.category_id = ?';
             $params[] = $category;
         }
         
         if ($docType) {
-            $where[] = 'document_type_id = ?';
+            $where[] = 'd.document_type_id = ?';
             $params[] = $docType;
         }
         
         if ($format) {
-            $where[] = 'file_format = ?';
-            $params[] = $format;
+            $formats = explode(',', $format);
+            if (count($formats) > 0) {
+                $formatPlaceholders = implode(',', array_fill(0, count($formats), '?'));
+                $where[] = "d.file_format IN ($formatPlaceholders)";
+                $params = array_merge($params, $formats);
+            }
         }
         
         if ($timeRange) {
             switch ($timeRange) {
                 case 'week':
-                    $where[] = 'created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
+                    $where[] = 'd.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
                     break;
                 case 'month':
-                    $where[] = 'created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)';
+                    $where[] = 'd.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)';
                     break;
                 case 'year':
-                    $where[] = 'created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)';
+                    $where[] = 'd.created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)';
                     break;
             }
         }
         
         $whereClause = implode(' AND ', $where);
         
-        // Count total
-        $stmt = $db->prepare("SELECT COUNT(*) as total FROM documents WHERE $whereClause");
+        // Count total - PHẢI JOIN với users để search author
+        $countSql = "SELECT COUNT(*) as total 
+                     FROM documents d 
+                     LEFT JOIN users u ON d.author_id = u.id 
+                     WHERE $whereClause";
+        $stmt = $db->prepare($countSql);
         $stmt->execute($params);
         $total = $stmt->fetch()['total'];
         
@@ -109,7 +120,8 @@ switch ($action) {
             ]
         ]);
         break;
-        case 'get':
+
+    case 'get':
     case 'detail':
         $id = $_GET['id'] ?? 0;
         
@@ -127,7 +139,7 @@ switch ($action) {
             // Tăng view count
             $updateStmt = $db->prepare("UPDATE documents SET view_count = view_count + 1 WHERE id = ?");
             $updateStmt->execute([$id]);
-          $document['full_path_url'] = '/doc_management/uploads/' . $document['file_path'];  
+            $document['full_path_url'] = '/doc_management/uploads/' . $document['file_path'];  
             echo json_encode(['success' => true, 'data' => $document]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Tài liệu không tồn tại']);
@@ -181,7 +193,6 @@ switch ($action) {
             break;
         }
         
-        // Validate file upload
         if (!isset($_FILES['file'])) {
             echo json_encode(['success' => false, 'message' => 'Không có file được upload']);
             break;
@@ -201,7 +212,6 @@ switch ($action) {
             break;
         }
         
-        // Generate unique filename
         $newFileName = uniqid() . '_' . time() . '.' . $fileExt;
         $filePath = UPLOAD_PATH . $newFileName;
         
@@ -237,7 +247,6 @@ switch ($action) {
         
         $id = $_POST['id'] ?? 0;
         
-        // Check ownership
         $stmt = $db->prepare("SELECT author_id FROM documents WHERE id = ?");
         $stmt->execute([$id]);
         $doc = $stmt->fetch();
@@ -247,7 +256,6 @@ switch ($action) {
             break;
         }
         
-        // Update with or without new file
         if (isset($_FILES['file']) && $_FILES['file']['error'] === 0) {
             $file = $_FILES['file'];
             $fileExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -317,7 +325,6 @@ switch ($action) {
             break;
         }
         
-        // Tăng download count
         $updateStmt = $db->prepare("UPDATE documents SET download_count = download_count + 1 WHERE id = ?");
         $updateStmt->execute([$id]);
         

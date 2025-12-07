@@ -485,3 +485,105 @@ body {
         grid-template-columns: 1fr;
     }
 }
+/* ============================================
+   BỔ SUNG CSS CHO HIGHLIGHT TÌM KIẾM
+   Thêm vào cuối file css/style.css
+   ============================================ */
+
+/* Highlight search results */
+mark {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    color: #856404;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(255, 193, 7, 0.3);
+}
+
+/* Highlight trong document card */
+.document-card mark {
+    background: #fff3cd;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.document-card:hover mark {
+    background: #ffc107;
+    color: #000;
+}
+
+/* No results message */
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    font-size: 18px;
+}
+
+.no-results::before {
+    content: '🔍';
+    display: block;
+    font-size: 60px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* Loading animation */
+.loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #667eea;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading p {
+    color: #667eea;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Alert error */
+.alert {
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 16px;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 2px solid #f5c6cb;
+}
+
+/* Enhanced document card cho search */
+.document-card {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.document-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Author info trong document card */
+.document-meta span:has(mark) {
+    font-weight: 600;
+    color: #667eea;
+}
