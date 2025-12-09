@@ -1,4 +1,6 @@
-/* Reset và Base Styles */
+/* =========================================
+   1. RESET & BASE STYLES
+   ========================================= */
 * {
     margin: 0;
     padding: 0;
@@ -16,10 +18,11 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
-   
 }
 
-/* Header */
+/* =========================================
+   2. HEADER & NAVIGATION
+   ========================================= */
 .header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -131,7 +134,9 @@ body {
     display: block;
 }
 
-/* Main Content */
+/* =========================================
+   3. LAYOUT & SIDEBAR
+   ========================================= */
 .main-content {
     padding: 30px 0;
 }
@@ -142,7 +147,6 @@ body {
     gap: 30px;
 }
 
-/* Sidebar */
 .sidebar {
     background: white;
     padding: 20px;
@@ -187,7 +191,9 @@ body {
     font-size: 0.9rem;
 }
 
-/* Documents Section */
+/* =========================================
+   4. DOCUMENTS SECTION (Đã chỉnh sửa)
+   ========================================= */
 .documents-section {
     background: white;
     padding: 20px;
@@ -211,68 +217,174 @@ body {
 
 .documents-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: 1fr; /* Sửa thành 1 cột để hiển thị thẻ ngang đẹp hơn */
     gap: 20px;
 }
 
+/* --- DOCUMENT CARD (New Horizontal Style) --- */
 .document-card {
-    background: #f9f9f9;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
     padding: 20px;
-    border-radius: 10px;
-    border: 1px solid #eee;
-    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    position: relative; /* Thêm relative để hỗ trợ highlight */
 }
 
 .document-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
-.document-card h3 {
+/* Thumbnail bên trái */
+.card-thumbnail {
+    width: 80px;
+    text-align: center;
+    font-size: 36px;
     color: #667eea;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-}
-
-.document-card .description {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.document-meta {
+    flex-shrink: 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-rating {
+    font-size: 0.85rem;
+    color: #f39c12;
+    margin-top: 6px;
+}
+
+.view-badge {
+    font-size: 0.85rem;
+    color: #555;
+    margin-top: 6px;
+}
+
+/* Nội dung bên phải */
+.card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-content h3 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.card-author {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.card-subject {
     font-size: 0.85rem;
     color: #888;
+    margin-bottom: 10px;
 }
 
-.badge {
-    display: inline-block;
-    padding: 4px 10px;
+/* Footer của card */
+.card-footer {
+    margin-top: 12px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.card-actions .action-btn {
+    background: #f0f0f0;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.card-actions .action-btn:hover {
+    background: #e0e0e0;
+}
+
+.card-stats-inline {
+    display: flex;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #777;
+}
+
+.format-badge {
     background: #667eea;
     color: white;
-    border-radius: 15px;
+    padding: 2px 8px;
+    border-radius: 12px;
     font-size: 0.75rem;
 }
 
-.badge.secondary {
-    background: #764ba2;
+/* Highlight trong document card */
+.document-card mark {
+    background: #fff3cd;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
-.document-stats {
-    display: flex;
-    gap: 15px;
-    margin-top: 10px;
-    font-size: 0.85rem;
+.document-card:hover mark {
+    background: #ffc107;
+    color: #000;
 }
 
+/* Author info highlight handling */
+.card-author span:has(mark) {
+    font-weight: 600;
+    color: #667eea;
+}
+
+/* No results message */
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    font-size: 18px;
+}
+
+.no-results::before {
+    content: '🔍';
+    display: block;
+    font-size: 60px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* =========================================
+   5. COMPONENT: HIGHLIGHT (Search)
+   ========================================= */
+mark {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    color: #856404;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(255, 193, 7, 0.3);
+}
+
+/* =========================================
+   6. UI ELEMENTS (Buttons, Pagination, Badges)
+   ========================================= */
 /* Pagination */
 .pagination {
     display: flex;
@@ -351,7 +463,23 @@ body {
     background: #c82333;
 }
 
-/* Modal */
+/* Badges (Giữ lại để tương thích nếu cần) */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #667eea;
+    color: white;
+    border-radius: 15px;
+    font-size: 0.75rem;
+}
+
+.badge.secondary {
+    background: #764ba2;
+}
+
+/* =========================================
+   7. MODAL & FORMS
+   ========================================= */
 .modal {
     display: none;
     position: fixed;
@@ -426,11 +554,15 @@ body {
     text-decoration: underline;
 }
 
-/* Alert Messages */
+/* =========================================
+   8. ALERTS & LOADING (Đã gộp và sửa)
+   ========================================= */
 .alert {
-    padding: 15px;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 16px;
     margin-bottom: 20px;
-    border-radius: 5px;
     font-weight: bold;
 }
 
@@ -441,99 +573,21 @@ body {
 }
 
 .alert-error {
-    background-color: #f8d7da;
+    background: #f8d7da;
     color: #721c24;
-    border: 1px solid #f5c6cb;
+    border: 2px solid #f5c6cb;
 }
 
 /* Loading Spinner */
 .loading {
     text-align: center;
-    padding: 40px;
-}
-
-.spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-    }
-    
-    .content-wrapper {
-        grid-template-columns: 1fr;
-    }
-    
-    .sidebar {
-        position: static;
-    }
-    
-    .documents-grid {
-        grid-template-columns: 1fr;
-    }
-}
-/* ============================================
-   BỔ SUNG CSS CHO HIGHLIGHT TÌM KIẾM
-   Thêm vào cuối file css/style.css
-   ============================================ */
-
-/* Highlight search results */
-mark {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
-    color: #856404;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(255, 193, 7, 0.3);
-}
-
-/* Highlight trong document card */
-.document-card mark {
-    background: #fff3cd;
-    padding: 3px 7px;
-    border-radius: 4px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.document-card:hover mark {
-    background: #ffc107;
-    color: #000;
-}
-
-/* No results message */
-.no-results {
-    text-align: center;
     padding: 60px 20px;
-    color: #999;
-    font-size: 18px;
 }
 
-.no-results::before {
-    content: '🔍';
-    display: block;
-    font-size: 60px;
-    margin-bottom: 20px;
-    opacity: 0.5;
-}
-
-/* Loading animation */
-.loading {
-    text-align: center;
-    padding: 60px 20px;
+.loading p {
+    color: #667eea;
+    font-size: 16px;
+    font-weight: 600;
 }
 
 .spinner {
@@ -551,39 +605,52 @@ mark {
     100% { transform: rotate(360deg); }
 }
 
-.loading p {
-    color: #667eea;
-    font-size: 16px;
-    font-weight: 600;
+/* =========================================
+   9. RESPONSIVE
+   ========================================= */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+    }
+    
+    .content-wrapper {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar {
+        position: static;
+    }
+    
+    .documents-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Responsive cho card mới: Trên mobile chuyển về dọc */
+    .document-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .card-content {
+        width: 100%;
+    }
+    
+    .card-actions, .card-stats-inline {
+        justify-content: center;
+    }
+}
+/* --- THÊM VÀO CUỐI FILE style.css --- */
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
-/* Alert error */
-.alert {
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    font-size: 16px;
-}
-
-.alert-error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 2px solid #f5c6cb;
-}
-
-/* Enhanced document card cho search */
-.document-card {
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.document-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-/* Author info trong document card */
-.document-meta span:has(mark) {
-    font-weight: 600;
-    color: #667eea;
+.user-avatar:hover {
+    transform: scale(1.1);
 }

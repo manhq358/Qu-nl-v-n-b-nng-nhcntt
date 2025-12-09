@@ -13,7 +13,10 @@ let filters = {
 
 // Init app
 document.addEventListener('DOMContentLoaded', function() {
-    checkAuth();
+    // Lưu ý: Hàm checkAuth() có thể nằm ở file auth.js, hãy đảm bảo file đó đã được load
+    if (typeof checkAuth === 'function') {
+        checkAuth();
+    }
     loadCategories();
     loadDocumentTypes();
     loadDocuments();
@@ -119,7 +122,7 @@ async function loadDocuments() {
     }
 }
 
-// Display documents - NÂNG CẤP: Hiển thị author_name và highlight
+// --- PHẦN ĐÃ SỬA: Hiển thị dạng thẻ ngang (Khớp với CSS mới) ---
 function displayDocuments(documents) {
     const container = document.getElementById('documentsList');
     
@@ -128,26 +131,45 @@ function displayDocuments(documents) {
         return;
     }
     
-    container.innerHTML = documents.map(doc => `
+    container.innerHTML = documents.map(doc => {
+        // Icon theo định dạng
+        let fileIcon = '📄';
+        const fmt = doc.file_format ? doc.file_format.toLowerCase() : '';
+        if (fmt === 'pdf') fileIcon = '📕';
+        else if (fmt === 'docx' || fmt === 'doc') fileIcon = '📘';
+        else if (fmt === 'pptx' || fmt === 'ppt') fileIcon = '📙';
+        else if (fmt === 'zip' || fmt === 'rar') fileIcon = '📦';
+
+        return `
         <div class="document-card" onclick="viewDocument(${doc.id})">
-            <h3>${highlightSearch(doc.title)}</h3>
-            <p class="description">${highlightSearch(doc.description || '')}</p>
-            <div class="document-meta">
-                <span class="badge">${doc.category_name}</span>
-                <span class="badge secondary">${doc.doc_type_name}</span>
-                <span>📄 ${doc.file_format.toUpperCase()}</span>
+            <div class="card-thumbnail">
+                <div style="font-size: 40px;">${fileIcon}</div>
+                <div class="view-badge">👁️ ${doc.view_count}</div>
             </div>
-            <div class="document-stats">
-                <span>👁️ ${doc.view_count} lượt xem</span>
-                <span>⬇️ ${doc.download_count} lượt tải</span>
-            </div>
-            <div class="document-meta">
-                <span>👤 ${highlightSearch(doc.author_name || 'N/A')}</span>
-                <span>📅 ${formatDate(doc.created_at)}</span>
+
+            <div class="card-content">
+                <div>
+                    <h3>${highlightSearch(doc.title)}</h3>
+                    <div class="card-author">
+                        Tác giả: <span>${highlightSearch(doc.author_name || 'N/A')}</span>
+                    </div>
+                    <div class="card-subject">
+                        ${doc.category_name} • ${doc.doc_type_name}
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="card-stats-inline">
+                        <span class="format-badge">${doc.file_format.toUpperCase()}</span>
+                        <span>📅 ${formatDate(doc.created_at)}</span>
+                        <span>⬇️ ${doc.download_count} tải</span>
+                    </div>
+                </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
+// -------------------------------------------------------------
 
 // Display pagination
 function displayPagination(pagination) {
@@ -249,12 +271,11 @@ function viewDocument(id) {
     window.location.href = `document-detail.html?id=${id}`;
 }
 
-// NÂNG CẤP: Highlight search terms - Hỗ trợ escape regex
+// Highlight search terms
 function highlightSearch(text) {
     if (!text) return '';
     if (!filters.search) return text;
     
-    // Escape special regex characters
     const searchTerm = filters.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${searchTerm})`, 'gi');
     return text.replace(regex, '<mark>$1</mark>');
