@@ -7,6 +7,25 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <style>
+        /* Style cho avatar trên thanh menu trang chủ */
+.user-avatar {
+    width: 32px;       /* Kích thước nhỏ */
+    height: 32px;
+    border-radius: 50%; /* Bo tròn */
+    object-fit: cover;  /* Cắt ảnh vừa khung, không bị méo */
+    margin-right: 8px;  /* Cách tên người dùng một chút */
+    vertical-align: middle;
+    border: 1px solid #ddd;
+}
+
+/* Chỉnh lại user-menu để các phần tử nằm ngang hàng */
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+    </style>
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -25,7 +44,7 @@
                     </div>
                     
                     <div id="userMenu" class="user-menu" style="display: none;">
-                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User" alt="Avatar" class="user-avatar">
+                        <img id="userAvatar" src="https://via.placeholder.com/150" alt="Avatar" class="user-avatar">
                         
                         <span id="userName"></span>
                         <div class="dropdown">

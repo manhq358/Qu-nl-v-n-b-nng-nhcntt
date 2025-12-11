@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCategories();
     loadDocumentTypes();
     loadDocuments();
-    
+    loadHeaderUserInfo();
     // Event listeners
     document.getElementById('searchInput').addEventListener('input', debounce(handleSearch, 500));
     document.getElementById('resetFilters').addEventListener('click', resetFilters);
@@ -321,5 +321,44 @@ function closeModal(modalId) {
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
+    }
+}
+// --- THÊM ĐOẠN NÀY VÀO CUỐI FILE app.js ---
+
+// Hàm tải avatar và tên người dùng cho Header
+async function loadHeaderUserInfo() {
+    // Kiểm tra xem hàm getAuthToken có tồn tại không (từ file auth.js)
+    // Nếu chưa load auth.js thì lấy trực tiếp từ localStorage
+    const token = (typeof getAuthToken === 'function') ? getAuthToken() : localStorage.getItem('token');
+    
+    if (!token) return; // Chưa đăng nhập thì thôi
+
+    try {
+        // Gọi API lấy thông tin user (giống bên profile.html)
+        const response = await fetch(`${API_URL}/user.php?action=profile`, {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const user = result.data;
+            
+            // 1. Cập nhật Avatar
+            const avatarImg = document.getElementById('userAvatar');
+            if (avatarImg && user.avatar_url) {
+                avatarImg.src = user.avatar_url;
+            }
+
+            // 2. Cập nhật Tên hiển thị (nếu auth.js chưa làm)
+            const userNameSpan = document.getElementById('userName');
+            if (userNameSpan) {
+                userNameSpan.textContent = user.full_name || user.email;
+            }
+        }
+    } catch (error) {
+        console.error('Lỗi khi tải thông tin header:', error);
     }
 }
